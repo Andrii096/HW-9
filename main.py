@@ -2,80 +2,62 @@ def input_error(func):
     def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except IndexError:
-            return "Please enter the contact like this:\nName: number"
         except KeyError:
-            return "This contact doesn't exist."
+            return "There's no such name!"
         except ValueError:
-            return "Invalid command entered."
-
+            return "Enter valid command!"
+        except IndexError:
+            return "Give me name and phone please"
     return inner
 
-
-def greeting(*args):
-    return "How can I help you?"
-
-
-def to_exit(*args):
-    return "Good bye"
-
-
-data = {}
-
+contacts = {}
 
 @input_error
-def add_contact(*args):
-    data.update({str(args[0]): int(args[1])})
-    return f'Contact {args[0].title()} has added successfully'
-
-
-@input_error
-def change_number(*args):
-    data[args[0]] = int(args[1])
-    return f'Phone for contact {args[0].title()} has changed successfully'
-
+def add_contact(name, phone):
+    contacts[name.capitalize()] = phone
+    return f'Contact {name.capitalize()} has been saved!'
 
 @input_error
-def del_number(*args):
-    del data[args[0]]
-    return f'Phone for contact {args[0].title()} has deleted successfully'
-
+def change_phone(name, phone):
+    if name.capitalize() in contacts:
+        contacts[name.capitalize()] = phone
+        return f'Phone number for {name.capitalize()} has been changed!'
+    else:
+        return f"No contact named {name.capitalize()}."
 
 @input_error
-def print_phone(*args):
-    return data[args[0]]
+def show_phone(name):
+    return contacts[name.capitalize()]
 
-
-def show_all(*args):
-    return "\n".join([f"{k.title()}: {v}" for k, v in data.items()]) if len(data) > 0 else 'Contacts are empty'
-
-
-all_commands = {
-    greeting: ["hello", "hi"],
-    add_contact: ["add", "new"],
-    change_number: ["change", ],
-    print_phone: ["phone", "number"],
-    show_all: ["show all", "show"],
-    to_exit: ["good bye", "close", "exit", ".", "bye"],
-    del_number: ["del", "delete"]
-}
-
-
-def command_parser(user_input: str):
-    for key, value in all_commands.items():
-        for i in value:
-            if user_input.lower().startswith(i.lower()):
-                return key, user_input[len(i):].strip().split()
-
+@input_error
+def show_all():
+    result = ""
+    for name, phone in contacts.items():
+        result += f'{name} {phone}\n'
+    return result.strip()
 
 def main():
     while True:
-        user_input = input(">>> ")
-        command, parser_data = command_parser(user_input)
-        print(command(*parser_data))
-        if command is to_exit:
+        command = input("Enter command: ").lower()
+        
+        if command == "hello":
+            print("How can I help you?")
+        elif command.startswith("add "):
+            _, name, phone = command.split()
+            print(add_contact(name, phone))
+        elif command.startswith("change "):
+            _, name, phone = command.split()
+            print(change_phone(name, phone))
+        elif command.startswith("phone "):
+            _, name = command.split(maxsplit=1)
+            print(show_phone(name))
+        elif command == "show all":
+            print(show_all())
+        elif command in ["good bye", "close", "exit"]:
+            print("Good bye!")
             break
-
+        else:
+            print("I don't understand this command!")
 
 if __name__ == "__main__":
     main()
